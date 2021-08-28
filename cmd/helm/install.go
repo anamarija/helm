@@ -17,11 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -242,11 +239,6 @@ func runInstall(args []string, client *action.Install, valueOpts *values.Options
 		}
 	}
 
-	err = loadExternalPaths(chartRequested, client.ExternalPaths)
-	if err != nil {
-		return nil, err
-	}
-
 	client.Namespace = settings.Namespace()
 	return client.Run(chartRequested, vals)
 }
@@ -260,33 +252,6 @@ func checkIfInstallable(ch *chart.Chart) error {
 		return nil
 	}
 	return errors.Errorf("%s charts are not installable", ch.Metadata.Type)
-}
-
-func loadExternalPaths(ch *chart.Chart, externalPaths []string) error {
-	var errs []string
-
-	for _, path := range externalPaths {
-		allPaths, err := loader.ExpandLocalPath(path)
-		debug(fmt.Sprintf("%s expanded to: %v", path, allPaths))
-		if err != nil {
-			debug(fmt.Sprintf("error loading external path %s: %v", path, err))
-			errs = append(errs, fmt.Sprintf("%s (path not accessible)", path))
-		}
-
-		for _, name := range allPaths {
-			fileContentBytes, err := ioutil.ReadFile(name)
-			if err != nil {
-				errs = append(errs, fmt.Sprintf("%s (not readable)", name))
-			} else {
-				ch.Files = append(ch.Files, &chart.File{Name: name, Data: fileContentBytes})
-			}
-		}
-	}
-
-	if len(errs) > 0 {
-		return errors.New(fmt.Sprint("Failed to load external paths: ", strings.Join(errs, "; ")))
-	}
-	return nil
 }
 
 // Provide dynamic auto-completion for the install and template commands

@@ -18,6 +18,7 @@ package action
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -244,6 +245,15 @@ func withSampleIncludingIncorrectTemplates() chartOption {
 			{Name: "templates/partials/_planet", Data: []byte(`{{define "_planet"}}Earth{{end}}`)},
 		}
 		opts.Templates = append(opts.Templates, sampleTemplates...)
+	}
+}
+
+func withExternalFileTemplate(externalPath string) chartOption {
+	return func(opts *chartOptions) {
+		externalFilesTemplates := []*chart.File{
+			{Name: "templates/with-external-paths", Data: []byte(fmt.Sprintf(`data: {{ .Files.Get "%s" }}`, externalPath))},
+		}
+		opts.Templates = append(opts.Templates, externalFilesTemplates...)
 	}
 }
 

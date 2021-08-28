@@ -100,7 +100,7 @@ type Upgrade struct {
 	DisableOpenAPIValidation bool
 	// Get missing dependencies
 	DependencyUpdate bool
-	ExternalPaths            []string
+	ExternalPaths    []string
 }
 
 // NewUpgrade creates a new Upgrade object with the given configuration.
@@ -160,6 +160,10 @@ func (u *Upgrade) prepareUpgrade(name string, chart *chart.Chart, vals map[strin
 		if errors.Is(err, driver.ErrReleaseNotFound) {
 			return nil, nil, driver.NewErrNoDeployedReleases(name)
 		}
+		return nil, nil, err
+	}
+
+	if err := loadExternalPaths(chart, u.ExternalPaths); err != nil {
 		return nil, nil, err
 	}
 
